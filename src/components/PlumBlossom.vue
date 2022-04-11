@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRaf } from '../utils';
 
 interface Point {
   x: number
@@ -38,23 +39,23 @@ function init() {
   beginDraw()
 }
 
-/** 枝叶生长概率 0<x<1 */
-const growChance = 0.3
-const initLength = 30
-const growLength = 10
+const growChance = 0.5
+const firstLeafLen = 5
 const minGrowDepth = 5
-const maxGrowDepth = 15
-const basicGrowAngle = 20 * Math.PI / 180
+const extraBounding = 100
+const basicGrowAngle = Math.PI / 12
+
+const drawFunList: Function[] = []
 
 function beginDraw() {
-  ctx.fillStyle = '#DDDDDD'
-
+  ctx.strokeStyle = '#00000040'
+  ctx.lineWidth = 1
   drawRandomBlossom({
     begin: {
       x: Math.floor(uiRect.width / 2),
-      y: uiRect.height
+      y: 0
     },
-    length: initLength,
+    length: firstLeafLen,
     angle: Math.PI / 2
   }, 0)
 }
@@ -62,38 +63,58 @@ function beginDraw() {
 function drawRandomBlossom(leaf: Leaf, depth: number) {
   const endPoint: Point = {
     x: leaf.begin.x + leaf.length * Math.cos(leaf.angle),
-    y: leaf.begin.y - leaf.length * Math.sin(leaf.angle)
+    y: leaf.begin.y + leaf.length * Math.sin(leaf.angle)
   }
-  drawLine(leaf.begin, endPoint)
-  if (depth >= maxGrowDepth) {
-    // 限制生长
+
+  // 判定边界
+  if (endPoint.x < -extraBounding || endPoint.x > uiRect.width + extraBounding ||
+    endPoint.y < -extraBounding || endPoint.y > uiRect.height + extraBounding
+  ) {
     return
   }
 
+  drawLine(leaf.begin, endPoint)
+
   if (depth < minGrowDepth || Math.random() < growChance) {
-    drawRandomBlossom(generateLeaf(leaf, endPoint, true), depth + 1)
+    drawFunList.push(() => {
+      drawRandomBlossom(generateLeaf(leaf, endPoint, true), depth + 1)
+    })
   }
   if (depth < minGrowDepth || Math.random() < growChance) {
-    drawRandomBlossom(generateLeaf(leaf, endPoint, false), depth + 1)
+    drawFunList.push(() => {
+      drawRandomBlossom(generateLeaf(leaf, endPoint, false), depth + 1)
+    })
   }
 }
 
-function generateLeaf(leaf: Leaf, lastEndPoint: Point, toRight: boolean) {
+function generateLeaf(leaf: Leaf, lastEndPoint: Point, toRight: boolean): Leaf {
   const randomAngleValue = Math.random() * basicGrowAngle
   const angle = leaf.angle + (toRight ? randomAngleValue : -randomAngleValue)
 
   return {
     begin: lastEndPoint,
-    length: Math.random() < 0.3 ? leaf.length : growLength,
+    length: firstLeafLen * Math.random(),
     angle
   }
 }
 
 function drawLine(begin: Point, end: Point) {
+  ctx.beginPath()
   ctx.moveTo(begin.x, begin.y)
   ctx.lineTo(end.x, end.y)
   ctx.stroke()
 }
+
+const { resume, pause } = useRaf(() => {
+  const tasks = [...drawFunList]
+  drawFunList.length = 0
+
+  tasks.forEach((fun) => { fun() })
+
+  if (!tasks.length) {
+    pause()
+  }
+})
 
 onMounted(() => {
   init()
@@ -103,8 +124,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <canvas ref="ui" id="ui"></canvas>
-  </div>
+    <canvas ref="ui" id="ui"></canvas>  </div>
 </template>
 
 <style scoped>
