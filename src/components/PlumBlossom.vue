@@ -47,7 +47,10 @@ const basicGrowAngle = Math.PI / 12
 
 const drawFunList: Function[] = []
 
+let isPlumStopped = true
+
 function beginDraw() {
+  isPlumStopped = false
   ctx.strokeStyle = '#00000040'
   ctx.lineWidth = 1
   drawRandomBlossom({
@@ -112,9 +115,26 @@ const { resume, pause } = useRaf(() => {
   tasks.forEach((fun) => { fun() })
 
   if (!tasks.length) {
+    isPlumStopped = true
     pause()
   }
 })
+
+function drawPlumAgain() {
+  if (!isPlumStopped) {
+    return
+  }
+
+  clearCanvas()
+
+  beginDraw()
+  resume()
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, uiRect.width, uiRect.height)
+}
+
 
 onMounted(() => {
   init()
@@ -123,13 +143,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <canvas ref="ui" id="ui"></canvas>  </div>
+  <div class="container">
+    <canvas ref="ui" id="ui" @click="drawPlumAgain"></canvas>
+    <p class="copywriter">
+      春色满园关不住&nbsp;&nbsp;一只红杏出墙来
+    </p>  </div>
 </template>
 
 <style scoped>
+.container {
+  width: 900px;
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto;
+}
+
 #ui {
   width: 800px;
   height: 800px;
+}
+
+.copywriter {
+  writing-mode: vertical-lr;
+  font-size: 50px;
 }
 </style>
