@@ -146,7 +146,7 @@ onMounted(() => {
   <div class="container">
     <canvas ref="ui" id="ui" @click="drawPlumAgain"></canvas>
     <p class="copywriter">
-      春色满园关不住&nbsp;&nbsp;一枝红杏出墙来
+      如捻青梅窥少俊&nbsp;&nbsp;似骑红杏出墙头
     </p>  </div>
 </template>
 
