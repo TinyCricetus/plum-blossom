@@ -1,4 +1,4 @@
-import { useRaf } from "../utils"
+import { useRaf } from "../../utils"
 
 export interface Point {
   x: number
