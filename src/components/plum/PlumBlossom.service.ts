@@ -16,11 +16,20 @@ export interface Leaf {
 }
 
 export interface PlumConfig {
+  /** 画板宽度 单位px */
+  uiWidth: number
+
+  /** 画板高度 单位px */
+  uiHeight: number
+
   /** 枝叶生长几率 建议0.5 0 < growChance < 1 */
   growChance: number
 
   /** 叶子初始长度 单位：像素 px */
   firstLeafLen: number
+
+  /** 最大层数 */
+  maxGrowDepth: number
 
   /** 最小生长层数 */
   minGrowDepth: number
@@ -41,9 +50,12 @@ export interface PlumConfig {
 type PlumPartialConfig = Partial<PlumConfig>
 
 export const defaultPlumConfig: PlumConfig = {
+  uiWidth: window.innerWidth,
+  uiHeight: window.innerHeight,
   growChance: 0.5,
   firstLeafLen: 5,
   minGrowDepth: 5,
+  maxGrowDepth: 300,
   extraBounding: 100,
   basicGrowAngle: Math.PI / 12,
   leafColor: '#00000040',
@@ -70,8 +82,11 @@ export class PlumService {
     }
 
     // 要设置，否则按照默认300:150
-    this.canvasEl.width = document.body.clientWidth
-    this.canvasEl.height = document.body.clientHeight
+    this.canvasEl.style.width = `${this.plumConfig.uiWidth}px`
+    this.canvasEl.style.height = `${this.plumConfig.uiHeight}px`
+    
+    this.canvasEl.width = this.plumConfig.uiWidth
+    this.canvasEl.height = this.plumConfig.uiHeight
   }
 
   getCanvasContext() {
@@ -100,7 +115,7 @@ export class PlumService {
       this.resume()
     }
   }
-  
+
   clearCanvas() {
     this.ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height)
   }
@@ -113,7 +128,8 @@ export class PlumService {
 
     // 判定边界
     if (endPoint.x < -this.plumConfig.extraBounding || endPoint.x > this.canvasEl.width + this.plumConfig.extraBounding ||
-      endPoint.y < -this.plumConfig.extraBounding || endPoint.y > this.canvasEl.height + this.plumConfig.extraBounding
+      endPoint.y < -this.plumConfig.extraBounding || endPoint.y > this.canvasEl.height + this.plumConfig.extraBounding ||
+      depth > this.plumConfig.maxGrowDepth
     ) {
       return
     }

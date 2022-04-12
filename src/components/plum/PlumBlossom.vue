@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { PlumService } from './PlumBlossom.service';
+import { defaultPlumConfig, PlumService } from './PlumBlossom.service';
 
 let plumService: PlumService = null
 const canvasEl = ref<HTMLCanvasElement>()
@@ -10,35 +10,39 @@ onMounted(() => {
 })
 
 function init() {
-  const initLen = 5 // px
+  const initLen = defaultPlumConfig.firstLeafLen
+  const width = defaultPlumConfig.uiWidth
+  const height = defaultPlumConfig.uiHeight
+  
   plumService = new PlumService(canvasEl.value)
+
 
   plumService.beginPlumGrow([
     // 从上往下
     {
       begin: {
-        x: Math.floor(document.body.clientWidth / 2),
+        x: Math.floor(width / 3),
         y: 0
       },
       length: initLen,
       angle: Math.PI / 2
     },
 
-    // 从下往上
-    {
-      begin: {
-        x: Math.floor(document.body.clientWidth / 2),
-        y: Math.floor(document.body.clientHeight)
-      },
-      length: initLen,
-      angle: -Math.PI / 2
-    },
+    // // 从下往上
+    // {
+    //   begin: {
+    //     x: Math.floor(width / 3),
+    //     y: height
+    //   },
+    //   length: initLen,
+    //   angle: -Math.PI / 2
+    // },
 
     // 从左往右
     {
       begin: {
         x: 0,
-        y: Math.floor(document.body.clientHeight / 2)
+        y: Math.floor(height / 3)
       },
       length: initLen,
       angle: 0
@@ -47,8 +51,8 @@ function init() {
     // 从右往左
     {
       begin: {
-        x: Math.floor(document.body.clientWidth),
-        y: Math.floor(document.body.clientHeight / 2)
+        x: width,
+        y: Math.floor(height / 3)
       },
       length: initLen,
       angle: -Math.PI
@@ -58,24 +62,14 @@ function init() {
 </script>
 
 <template>
-  <div class="container">
+  <div>
     <canvas ref="canvasEl" id="ui"></canvas>
   </div>
 </template>
 
 <style scoped>
-.container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  margin: 0 auto;
-}
-
 #ui {
   display: block;
-  width: 100%;
-  height: 100%;
 }
 
 .copywriter {
